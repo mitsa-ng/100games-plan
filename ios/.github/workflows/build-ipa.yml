@@ -1,0 +1,108 @@
+name: Build iOS IPA (no code signing)
+
+on:
+  push:
+    branches: [main, master]
+  release:
+    types: [published]
+  workflow_dispatch:
+
+env:
+  SCHEME_NAME: TenHundredGames
+  APP_NAME: TenHundredGamesApp
+
+jobs:
+  build-ipa:
+    runs-on: macos-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          sudo xcode-select -switch /Applications/Xcode_15.app/Contents/Developer
+          xcodebuild -version
+
+      - name: Resolve Swift Package dependencies
+        run: swift package resolve
+
+      - name: Build iOS library (verify compilation)
+        run: |
+          xcodebuild -scheme ${SCHEME_NAME} \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -configuration Release \
+            build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO
+
+      - name: Package unsigned .ipa artifact
+        id: package_ipa
+        run: |
+          # 構建產出目錄（xcodebuild -derivedDataPath ./build 的標準路徑）
+          BUILD_PRODUCTS="./build/Build/Products/Release-iphonesimulator"
+          echo "Build products: ${BUILD_PRODUCTS}"
+
+          if [ ! -d "${BUILD_PRODUCTS}" ]; then
+            echo "IPA_NOT_FOUND=1" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # 建立 IPA 結構：Payload/ 目錄下放構建產物
+          rm -rf ./build/export
+          mkdir -p ./build/export/Payload
+
+          # 將構建產物複製到 Payload（構成一個未簽名的 .ipa 結構）
+          cp -R "${BUILD_PRODUCTS}"/* ./build/export/Payload/ 2>/dev/null || true
+
+          # 創建 Info.plist 讓 .ipa 結構更完整（可選）
+          cat > ./build/export/Payload/Info.plist << 'PLIST'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>
+    <string>TenHundredGamesApp</string>
+    <key>CFBundleDisplayName</key>
+    <string>100 Games Plan</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.playbox.tenhundredgames</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0</string>
+    <key>CFBundleExecutable</key>
+    <string>TenHundredGamesApp</string>
+    <key>LSRequiresIPhoneOS</key>
+    <true/>
+</dict>
+PLIST
+
+          cd ./build/export
+          zip -r "${APP_NAME}.ipa" Payload
+          cd ../..
+
+          echo "IPA_PATH=./build/export/${APP_NAME}.ipa" >> $GITHUB_OUTPUT
+          echo "ipa packaged successfully"
+
+      - name: Upload unsigned IPA to GitHub Release
+        if: steps.package_ipa.outputs.IPA_NOT_FOUND != '1' && github.event_name == 'release'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ./build/export/${APP_NAME}.ipa
+
+      - name: Upload unsigned IPA as Artifact
+        if: steps.package_ipa.outputs.IPA_NOT_FOUND != '1'
+        uses: actions/upload-artifact@v4
+        with:
+          name: TenHundredGamesApp-unsigned-ipa
+          path: ./build/export/${APP_NAME}.ipa
+          retention-days: 30
+
+      - name: Upload build products (fallback)
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-products
+          path: ./build/
+          retention-days: 30

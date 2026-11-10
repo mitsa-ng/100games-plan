@@ -1,0 +1,11 @@
+.build/
+build/
+DerivedData/
+*.xcuserstate
+*.xccheckout
+*.xcscmblueprint
+.DS_Store
+Package.resolved
+.xcworkspace/
+TenHundredGamesApp.xcodeproj/
+TenHundredGamesApp.xcworkspace/
