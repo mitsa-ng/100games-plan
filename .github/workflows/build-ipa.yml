@@ -53,15 +53,15 @@ jobs:
             exit 0
           fi
 
-          # 建立 IPA 結構：Payload/ 目錄下放構建產物
+          # 建立正確的 IPA 結構：Payload/YourApp.app/
           rm -rf ./build/export
-          mkdir -p ./build/export/Payload
+          mkdir -p ./build/export/Payload/${APP_NAME}.app
 
-          # 將構建產物複製到 Payload（構成一個未簽名的 .ipa 結構）
-          cp -R "${BUILD_PRODUCTS}"/* ./build/export/Payload/ 2>/dev/null || true
+          # 將構建產物複製到 .app bundle 裡面
+          cp -R "${BUILD_PRODUCTS}"/* ./build/export/Payload/${APP_NAME}.app/ 2>/dev/null || true
 
-          # 創建 Info.plist 讓 .ipa 結構更完整（使用 printf 避免 YAML/XML 標籤衝突）
-          printf '<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0">\n<dict>\n    <key>CFBundleName</key>\n    <string>TenHundredGamesApp</string>\n    <key>CFBundleDisplayName</key>\n    <string>100 Games Plan</string>\n    <key>CFBundleIdentifier</key>\n    <string>com.playbox.tenhundredgames</string>\n    <key>CFBundleVersion</key>\n    <string>1</string>\n    <key>CFBundleShortVersionString</key>\n    <string>1.0.0</string>\n    <key>CFBundleExecutable</key>\n    <string>TenHundredGamesApp</string>\n    <key>LSRequiresIPhoneOS</key>\n    <true/>\n</dict>\n</plist>\n' > ./build/export/Payload/Info.plist
+          # 創建 Info.plist 放在 .app bundle 裡面（使用 printf 避免 YAML/XML 標籤衝突）
+          printf '<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0">\n<dict>\n    <key>CFBundleName</key>\n    <string>TenHundredGamesApp</string>\n    <key>CFBundleDisplayName</key>\n    <string>100 Games Plan</string>\n    <key>CFBundleIdentifier</key>\n    <string>com.playbox.tenhundredgames</string>\n    <key>CFBundleVersion</key>\n    <string>1</string>\n    <key>CFBundleShortVersionString</key>\n    <string>1.0.0</string>\n    <key>CFBundleExecutable</key>\n    <string>TenHundredGames</string>\n    <key>LSRequiresIPhoneOS</key>\n    <true/>\n</dict>\n</plist>\n' > ./build/export/Payload/${APP_NAME}.app/Info.plist
 
           cd ./build/export
           zip -r "${APP_NAME}.ipa" Payload
