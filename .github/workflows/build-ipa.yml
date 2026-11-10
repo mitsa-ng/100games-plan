@@ -23,7 +23,7 @@ jobs:
 
       - name: Select Xcode
         run: |
-          sudo xcode-select -switch /Applications/Xcode_15.app/Contents/Developer
+          xcode-select -p
           xcodebuild -version
 
       - name: Resolve Swift Package dependencies
