@@ -10,6 +10,7 @@ on:
 env:
   SCHEME_NAME: TenHundredGames
   APP_NAME: TenHundredGamesApp
+  IOS_DIR: ios
 
 jobs:
   build-ipa:
@@ -27,6 +28,7 @@ jobs:
 
       - name: Resolve Swift Package dependencies
         run: swift package resolve
+        working-directory: ${{ env.IOS_DIR }}
 
       - name: Build iOS library (verify compilation)
         run: |
@@ -36,9 +38,11 @@ jobs:
             build \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO
+        working-directory: ${{ env.IOS_DIR }}
 
       - name: Package unsigned .ipa artifact
         id: package_ipa
+        working-directory: ${{ env.IOS_DIR }}
         run: |
           # 構建產出目錄（xcodebuild -derivedDataPath ./build 的標準路徑）
           BUILD_PRODUCTS="./build/Build/Products/Release-iphonesimulator"
@@ -56,7 +60,7 @@ jobs:
           # 將構建產物複製到 Payload（構成一個未簽名的 .ipa 結構）
           cp -R "${BUILD_PRODUCTS}"/* ./build/export/Payload/ 2>/dev/null || true
 
-          # 創建 Info.plist 讓 .ipa 結構更完整（可選）
+          # 創建 Info.plist 讓 .ipa 結構更完整
           cat > ./build/export/Payload/Info.plist << 'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -77,6 +81,7 @@ jobs:
     <key>LSRequiresIPhoneOS</key>
     <true/>
 </dict>
+</plist>
 PLIST
 
           cd ./build/export
@@ -97,12 +102,12 @@ PLIST
         uses: actions/upload-artifact@v4
         with:
           name: TenHundredGamesApp-unsigned-ipa
-          path: ./build/export/${APP_NAME}.ipa
+          path: ${{ env.IOS_DIR }}/build/export/${APP_NAME}.ipa
           retention-days: 30
 
       - name: Upload build products (fallback)
         uses: actions/upload-artifact@v4
         with:
           name: build-products
-          path: ./build/
+          path: ${{ env.IOS_DIR }}/build/
           retention-days: 30
