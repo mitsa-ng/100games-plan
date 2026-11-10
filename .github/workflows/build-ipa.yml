@@ -33,7 +33,7 @@ jobs:
       - name: Build iOS library (verify compilation)
         run: |
           xcodebuild -scheme ${SCHEME_NAME} \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -destination 'platform=iOS Simulator,OS=latest' \
             -configuration Release \
             build \
             CODE_SIGNING_ALLOWED=NO \
