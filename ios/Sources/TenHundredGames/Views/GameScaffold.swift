@@ -1,5 +1,4 @@
 import SwiftUI
-import TenHundredGames
 
 struct GameScaffold<Content: View>: View {
     let title: String

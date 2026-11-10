@@ -1,5 +1,4 @@
 import SwiftUI
-import TenHundredGames
 
 struct SettingsView: View {
     @EnvironmentObject private var app: AppViewModel

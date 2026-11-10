@@ -1,5 +1,4 @@
 import SwiftUI
-import TenHundredGames
 
 struct GameDetailView: View {
     let gameId: GameId

@@ -7,25 +7,18 @@ let package = Package(
         .iOS(.v17),
     ],
     products: [
-        .library(
+        .executable(
             name: "TenHundredGames",
             targets: ["TenHundredGames"]),
-        .executable(
-            name: "TenHundredGamesApp",
-            targets: ["TenHundredGamesApp"]),
     ],
     targets: [
-        .target(
+        .executableTarget(
             name: "TenHundredGames",
             dependencies: [],
+            path: "Sources/TenHundredGames",
             resources: [
                 .process("Resources"),
             ]),
-        .executableTarget(
-            name: "TenHundredGamesApp",
-            dependencies: ["TenHundredGames"],
-            path: "Sources/TenHundredGamesApp"
-        ),
         .testTarget(
             name: "TenHundredGamesTests",
             dependencies: ["TenHundredGames"],

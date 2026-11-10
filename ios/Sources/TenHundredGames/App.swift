@@ -1,5 +1,4 @@
 import SwiftUI
-import TenHundredGames
 
 @main
 struct TenHundredGamesApp: App {

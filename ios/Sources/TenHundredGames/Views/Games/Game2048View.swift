@@ -1,5 +1,4 @@
 import SwiftUI
-import TenHundredGames
 
 struct Game2048View: View {
     @EnvironmentObject private var app: AppViewModel
